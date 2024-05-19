@@ -2,12 +2,9 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 
-add_selectbox = st.sidebar.selectbox(
-  'How would you like to be contacted? ',
-  ('Email', 'Phone', 'Home phone')
-)
+left_column, right_column = st.columns(2)
 
-add_slider = st.sidebar.slider(
-  'Select a range of values',
-  0.0,100.0,(25.0,75.0)
-)
+left_column.button('Click me!')
+
+with right_column:
+  chosen = st.radio('Which one would you like to select?', ('1', '2', '3'))
