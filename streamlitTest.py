@@ -1,10 +1,14 @@
 import streamlit as st
-import numpy as np
-import pandas as pd
+import time
 
-left_column, right_column = st.columns(2)
+'Starting a long computation...'
 
-left_column.button('Click me!')
+# Add a placeholder
+latest_iteration = st.empty()
+bar = st.progress(0)
 
-with right_column:
-  chosen = st.radio('Which one would you like to select?', ('1', '2', '3'))
+for i in range(100):
+  # Update the progress bar with each iteration.
+  latest_iteration.text(f'Iteration {i+1}')
+  bar.progress(i + 1)
+  time.sleep(0.1)
