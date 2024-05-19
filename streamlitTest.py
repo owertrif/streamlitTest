@@ -2,14 +2,12 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 
-df = pd.DataFrame({
-  'first column': [1, 2, 3, 4],
-  'second column': [5, 6, 7, 8]
-})
-
-option = st.selectbox(
-  'Which column do you want?',
-  df['first column']
+add_selectbox = st.sidebar.selectbox(
+  'How would you like to be contacted? ',
+  ('Email', 'Phone', 'Home phone')
 )
 
-'You chose: ',option
+add_slider = st.sidebar.slider(
+  'Select a range of values',
+  0.0,100.0,(25.0,75.0)
+)
