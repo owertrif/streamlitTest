@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+st.title('Uber pickups in NYC')
 DATE_COLUMN = 'date/time'
 DATA_URL = ('https://s3-us-west-2.amazonaws.com/'
          'streamlit-demo-data/uber-raw-data-sep14.csv.gz')
@@ -14,9 +15,7 @@ def load_data(nrows):
   return data
 
 data_load_state = st.text('Loading data...')
-
 data = load_data(10000)
-
 data_load_state.text("Done! (using st.cache_data)")
 
 if st.checkbox('Show data'):
@@ -30,5 +29,6 @@ if st.checkbox('Show bar chart'):
 
 hours_to_filter = st.slider('hour', 0, 23, 17)
 filtered_data = data[data[DATE_COLUMN].dt.hour == hours_to_filter]
+
 st.subheader(f'Map of all pickups at {hours_to_filter}:00')
 st.map(filtered_data)
