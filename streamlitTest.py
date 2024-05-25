@@ -1,14 +1,10 @@
 import streamlit as st
-import time
 
-'Starting a long computation...'
+if "counter" not in st.session_state:
+    st.session_state.counter = 0
 
-# Add a placeholder
-latest_iteration = st.empty()
-bar = st.progress(0)
+st.session_state.counter += 1
 
-for i in range(100):
-  # Update the progress bar with each iteration.
-  latest_iteration.text(f'Iteration {i+1}')
-  bar.progress(i + 1)
-  time.sleep(0.1)
+st.header(f"This page has run {st.session_state.counter} times.")
+st.button("Run it again")
+
