@@ -56,9 +56,9 @@ with st.expander('Show raw data'):
     st.write(land_data)
 
 if st.button('Goooo'):
-    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['land_types'],
-                                                        stratify=land_data['land_types'],
-                                                        test_size=0.33, random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(land_data['text'],land_data['built_up'],
+                                                              	stratify=land_data['built_up'],
+                                                              	test_size=0.33,random_state=0)
 
     # Create and fit the pipeline
     pipeline = Pipeline([
