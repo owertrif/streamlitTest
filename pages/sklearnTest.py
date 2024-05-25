@@ -10,8 +10,6 @@ import nltk
 import pandas as pd
 import numpy as np
 
-nltk.download('punkt')
-
 st.markdown("# SklearnNlp Page")
 st.sidebar.markdown("# SklearnNlp Page")
 
