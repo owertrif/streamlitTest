@@ -1,3 +1,5 @@
+import random
+
 import streamlit as st
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.pipeline import Pipeline
@@ -51,6 +53,40 @@ def land_types_download():
     return data[0]
 
 land_types = land_types_download()
+
+def Data_Augmentation(number):
+    unigrams_list = ['продаж', 'земельна', 'ділянка', 'іншої', 'інфраструктура', 'інструменту', 'інвентарю', 'ізумрудє',
+                     'івасюка',
+                     'яром', 'яворівського', 'шанове', 'чудова', 'цін', 'цільових', 'цілу', 'цілорічно', 'участке',
+                     'тільки', 'тухолька',
+                     'турківський', 'твердій', 'сухий', 'суха', 'сусідніх', 'сусідні', 'судова', 'сторони', 'сто',
+                     'стихії', 'селі', 'села',
+                     'сайті', 'руська', 'росташування', 'рокитне', 'розташовану', 'розташований', 'розміщені',
+                     'розміщення',
+                     'розміщений', 'розмірі', 'розділена', 'покупцю', 'показ', 'повідомлення', 'питання']
+
+    random.seed(0)
+    random_words = [unigrams_list[index] for index in random.sample(range(len(unigrams_list)), len(unigrams_list))]
+    tsv = 'для ведення товарного сільськогосподарського виробництва'
+
+    # Create an empty list to store the rows
+    rows = []
+    for sample_index in range(number):
+        # Append each new row to the list
+        new_row = {'text': tsv + ' ' + " ".join(random.sample(random_words, random.randint(0, 20))), 'land_types': 6,
+                   'built_up': 0}
+        rows.append(new_row)
+
+    # Concatenate all rows to form the DataFrame
+    df = pd.DataFrame(rows)
+
+    # Convert column types
+    df = df.astype({'text': 'object', 'land_types': 'int32', 'built_up': 'int32'})
+
+    return df
+
+
+land_data = pd.concat([land_data,Data_Augmentation(34)], ignore_index=True)
 
 with st.expander('Show raw data'):
     st.write(land_data)
