@@ -10,6 +10,9 @@ import nltk
 import pandas as pd
 import numpy as np
 
+def download_nltk_data():
+    nltk.download('punkt')
+
 st.markdown("# SklearnNlp Page")
 st.sidebar.markdown("# SklearnNlp Page")
 
