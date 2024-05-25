@@ -30,4 +30,5 @@ hours_to_filter = 17
 filtered_data = data[data[DATE_COLUMN].dt.hour == hours_to_filter]
 st.subheader(f'Map of all pickups at {hours_to_filter}:00')
 st.map(filtered_data)
+st.pydeck_chart(filtered_data)
 
