@@ -12,7 +12,10 @@ import numpy as np
 
 # Ensure NLTK data is downloaded
 def download_nltk_data():
-    nltk.download('punkt')
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt', quiet=True)
 
 download_nltk_data()
 
