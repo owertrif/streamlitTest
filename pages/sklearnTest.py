@@ -10,7 +10,7 @@ import nltk
 import pandas as pd
 import numpy as np
 from sklearn.utils import resample
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from joblib import parallel_backend
 
 # Ensure NLTK data is downloaded
@@ -29,7 +29,7 @@ nlp = Ukrainian()
 @st.cache_data
 def ua_tokenizer_lemma(text, lemma=True):
     text = re.sub(r"""['’"`�]""", '', text)
-    text = re.sub(r"""([0-9])([\u0400-\u04FF]|[A-z])""", r"\1 \2", text)
+    text = re.sub(r"""([0-9])([\у0400-\у04FF]|[A-z])""", r"\1 \2", text)
     text = re.sub(r"""([\у0400-\у04FF]|[A-z])([0-9])""", r"\1 \2", text)
     text = re.sub(r"""[\-.,:+*/_]""", ' ', text)
     if lemma:
@@ -76,13 +76,18 @@ def data_augmentation(number):
     random_words = [unigrams_list[index] for index in random.sample(range(len(unigrams_list)), len(unigrams_list))]
     tsv = 'для ведення товарного сільськогосподарського виробництва'
 
+    # Create an empty list to store the rows
     rows = []
     for sample_index in range(number):
+        # Append each new row to the list
         new_row = {'text': tsv + ' ' + " ".join(random.sample(random_words, random.randint(0, 20))), 'land_types': 6,
                    'built_up': 0}
         rows.append(new_row)
 
+    # Concatenate all rows to form the DataFrame
     df = pd.DataFrame(rows)
+
+    # Convert column types
     df = df.astype({'text': 'object', 'land_types': 'int32', 'built_up': 'int32'})
 
     return df
@@ -97,18 +102,26 @@ if st.button('Goooo'):
                                                         stratify=land_data['built_up'],
                                                         test_size=0.33, random_state=0)
 
+    # Перевірка розподілу категорій перед балансуванням
     st.write("Розподіл категорій перед балансуванням:")
     st.write(y_train.value_counts())
 
+    # Функція для балансування даних
     def balance_data(X, y):
+        # Об'єднання даних в один DataFrame
         data = pd.DataFrame({'text': X, 'built_up': y})
+
+        # Розділення даних на класи
         class_0 = data[data['built_up'] == 0]
         class_1 = data[data['built_up'] == 1]
 
+        # Зменшення класу 0 до розміру класу 1
         class_0_downsampled = resample(class_0,
                                        replace=False,
                                        n_samples=len(class_1),
                                        random_state=0)
+
+        # Об'єднання зменшених даних
         balanced_data = pd.concat([class_0_downsampled, class_1])
 
         X_balanced = balanced_data['text']
@@ -116,22 +129,21 @@ if st.button('Goooo'):
 
         return X_balanced, y_balanced
 
+    # Балансування даних
     X_resampled, y_resampled = balance_data(X_train, y_train)
 
+    # Перевірка розподілу категорій після балансування
     st.write("Розподіл категорій після балансування:")
     st.write(pd.Series(y_resampled).value_counts())
 
+    # Create and fit the pipeline with class weight adjustment
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('rf', RandomForestClassifier(class_weight='balanced'))
+        ('svc', LogisticRegression(class_weight={0: 1, 1: 5}))  # Adjust class weight
     ])
 
-    param_distributions = {
-        'rf__n_estimators': [100, 200],
-        'rf__max_depth': [10, 20, None],
-        'rf__min_samples_split': [2, 5, 10]
-    }
-
+    # Використання RandomizedSearchCV для налаштування параметрів
+    param_distributions = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
     with parallel_backend('threading', n_jobs=-1):
         random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy', n_jobs=-1)
         random_search.fit(X_resampled, y_resampled)
@@ -140,6 +152,7 @@ if st.button('Goooo'):
 
     y_pred = random_search.predict(X_test)
 
+    # Compute and display the confusion matrix and accuracy
     cm = confusion_matrix(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
     recall = recall_score(y_test, y_pred, zero_division=1)
