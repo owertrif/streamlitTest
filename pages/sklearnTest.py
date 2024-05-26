@@ -1,8 +1,7 @@
 import random
 import streamlit as st
-from sklearn.metrics import accuracy_score, confusion_matrix, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, precision_score, f1_score
 from sklearn.pipeline import Pipeline
-from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from spacy.lang.uk import Ukrainian
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -77,18 +76,13 @@ def data_augmentation(number):
     random_words = [unigrams_list[index] for index in random.sample(range(len(unigrams_list)), len(unigrams_list))]
     tsv = 'для ведення товарного сільськогосподарського виробництва'
 
-    # Create an empty list to store the rows
     rows = []
     for sample_index in range(number):
-        # Append each new row to the list
         new_row = {'text': tsv + ' ' + " ".join(random.sample(random_words, random.randint(0, 20))), 'land_types': 6,
                    'built_up': 0}
         rows.append(new_row)
 
-    # Concatenate all rows to form the DataFrame
     df = pd.DataFrame(rows)
-
-    # Convert column types
     df = df.astype({'text': 'object', 'land_types': 'int32', 'built_up': 'int32'})
 
     return df
@@ -103,26 +97,18 @@ if st.button('Goooo'):
                                                         stratify=land_data['built_up'],
                                                         test_size=0.33, random_state=0)
 
-    # Перевірка розподілу категорій перед балансуванням
     st.write("Розподіл категорій перед балансуванням:")
     st.write(y_train.value_counts())
 
-    # Функція для балансування даних
     def balance_data(X, y):
-        # Об'єднання даних в один DataFrame
         data = pd.DataFrame({'text': X, 'built_up': y})
-
-        # Розділення даних на класи
         class_0 = data[data['built_up'] == 0]
         class_1 = data[data['built_up'] == 1]
 
-        # Зменшення класу 0 до розміру класу 1
         class_0_downsampled = resample(class_0,
                                        replace=False,
                                        n_samples=len(class_1),
                                        random_state=0)
-
-        # Об'єднання зменшених даних
         balanced_data = pd.concat([class_0_downsampled, class_1])
 
         X_balanced = balanced_data['text']
@@ -130,20 +116,16 @@ if st.button('Goooo'):
 
         return X_balanced, y_balanced
 
-    # Балансування даних
     X_resampled, y_resampled = balance_data(X_train, y_train)
 
-    # Перевірка розподілу категорій після балансування
     st.write("Розподіл категорій після балансування:")
     st.write(pd.Series(y_resampled).value_counts())
 
-    # Create and fit the pipeline
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('svc', LogisticRegression())
+        ('svc', LogisticRegression(solver='liblinear'))
     ])
 
-    # Використання RandomizedSearchCV для налаштування параметрів
     param_distributions = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
     with parallel_backend('threading', n_jobs=-1):
         random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy', n_jobs=-1)
@@ -153,12 +135,15 @@ if st.button('Goooo'):
 
     y_pred = random_search.predict(X_test)
 
-    # Compute and display the confusion matrix and accuracy
     cm = confusion_matrix(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
-    recall = recall_score(y_test,y_pred, zero_division=1)
+    recall = recall_score(y_test, y_pred, zero_division=1)
+    precision = precision_score(y_test, y_pred, zero_division=1)
+    f1 = f1_score(y_test, y_pred, zero_division=1)
 
     st.write(f"Accuracy: {accuracy:.2f}")
     st.write(f"Recall: {recall:.2f}")
+    st.write(f"Precision: {precision:.2f}")
+    st.write(f"F1 Score: {f1:.2f}")
     st.write("Confusion Matrix:")
     st.table(cm)
