@@ -136,19 +136,19 @@ if st.button('Goooo'):
     st.write("Розподіл категорій після балансування:")
     st.write(pd.Series(y_resampled).value_counts())
 
-    from sklearn.ensemble import GradientBoostingClassifier
+    from sklearn.ensemble import RandomForestClassifier
 
-    # Create and fit the pipeline with Gradient Boosting
+    # Create and fit the pipeline with Random Forest
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('gbc', GradientBoostingClassifier())
+        ('rf', RandomForestClassifier(class_weight={0: 1, 1: 5}))  # Adjust class weights manually
     ])
 
     # Using RandomizedSearchCV for hyperparameter tuning
     param_distributions = {
-        'gbc__n_estimators': [100, 200],
-        'gbc__learning_rate': [0.01, 0.1, 0.2],
-        'gbc__max_depth': [3, 5, 7]
+        'rf__n_estimators': [100, 200],
+        'rf__min_samples_split': [2, 5, 10],
+        'rf__max_depth': [None, 10, 20]
     }
 
     with parallel_backend('threading', n_jobs=-1):
@@ -173,3 +173,4 @@ if st.button('Goooo'):
     st.write(f"F1 Score: {f1:.2f}")
     st.write("Confusion Matrix:")
     st.table(cm)
+
