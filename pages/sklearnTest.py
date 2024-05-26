@@ -1,6 +1,6 @@
 import random
 import streamlit as st
-from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score, confusion_matrix, recall_score
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
@@ -99,8 +99,8 @@ with st.expander('Show raw data'):
     st.write(land_data)
 
 if st.button('Goooo'):
-    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['built_up'],
-                                                        stratify=land_data['built_up'],
+    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['land_types'],
+                                                        stratify=land_data['land_types'],
                                                         test_size=0.33, random_state=0)
 
     # Перевірка розподілу категорій перед балансуванням
@@ -110,11 +110,11 @@ if st.button('Goooo'):
     # Функція для балансування даних
     def balance_data(X, y):
         # Об'єднання даних в один DataFrame
-        data = pd.DataFrame({'text': X, 'built_up': y})
+        data = pd.DataFrame({'text': X, 'land_types': y})
 
         # Розділення даних на класи
-        class_0 = data[data['built_up'] == 0]
-        class_1 = data[data['built_up'] == 1]
+        class_0 = data[data['land_types'] == 0]
+        class_1 = data[data['land_types'] == 1]
 
         # Зменшення класу 0 до розміру класу 1
         class_0_downsampled = resample(class_0,
@@ -126,7 +126,7 @@ if st.button('Goooo'):
         balanced_data = pd.concat([class_0_downsampled, class_1])
 
         X_balanced = balanced_data['text']
-        y_balanced = balanced_data['built_up']
+        y_balanced = balanced_data['land_types']
 
         return X_balanced, y_balanced
 
@@ -156,7 +156,9 @@ if st.button('Goooo'):
     # Compute and display the confusion matrix and accuracy
     cm = confusion_matrix(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
+    recall = recall_score(y_test,y_pred)
 
     st.write(f"Accuracy: {accuracy:.2f}")
+    st.write(f"Recall: {recall:.2f}")
     st.write("Confusion Matrix:")
     st.table(cm)
