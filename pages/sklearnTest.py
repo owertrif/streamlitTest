@@ -11,7 +11,7 @@ import re
 import nltk
 import pandas as pd
 import numpy as np
-from imblearn.over_sampling import SMOTE
+from sklearn.utils import resample
 
 # Ensure NLTK data is downloaded
 def download_nltk_data():
@@ -97,12 +97,30 @@ if st.button('Goooo'):
                                                               	stratify=land_data['built_up'],
                                                               	test_size=0.33,random_state=0)
 
-    st.write("Розподіл категорій перед балансуванням:")
-    st.write(y_train.value_counts())
+    def balance_data(X, y):
+        # Об'єднання даних в один DataFrame
+        data = pd.DataFrame({'text': X, 'built_up': y})
 
-    # Балансування даних за допомогою SMOTE
-    smote = SMOTE(random_state=0)
-    X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+        # Розділення даних на класи
+        class_0 = data[data['built_up'] == 0]
+        class_1 = data[data['built_up'] == 1]
+
+        # Зменшення класу 0 до розміру класу 1
+        class_0_downsampled = resample(class_0,
+                                       replace=False,
+                                       n_samples=len(class_1),
+                                       random_state=0)
+
+        # Об'єднання зменшених даних
+        balanced_data = pd.concat([class_0_downsampled, class_1])
+
+        X_balanced = balanced_data['text']
+        y_balanced = balanced_data['built_up']
+
+        return X_balanced, y_balanced
+
+    # Балансування даних
+    X_resampled, y_resampled = balance_data(X_train, y_train)
 
     # Перевірка розподілу категорій після балансування
     st.write("Розподіл категорій після балансування:")
