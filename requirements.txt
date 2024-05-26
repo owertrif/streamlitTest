@@ -3,4 +3,4 @@ scikit-learn
 nltk
 spacy
 numpy
-imblearn
+imbalanced-learn
