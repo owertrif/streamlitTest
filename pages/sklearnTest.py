@@ -3,15 +3,16 @@ import streamlit as st
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from spacy.lang.uk import Ukrainian
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 import re
 import nltk
 import pandas as pd
 import numpy as np
 from sklearn.utils import resample
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 # Ensure NLTK data is downloaded
 def download_nltk_data():
@@ -133,11 +134,17 @@ if st.button('Goooo'):
     # Create and fit the pipeline
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('svc', RandomForestClassifier())
+        ('svc', LogisticRegression())
     ])
 
-    pipeline.fit(X_resampled, y_resampled)
-    y_pred = pipeline.predict(X_test)
+    # Використання GridSearchCV для налаштування параметрів
+    param_grid = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
+    grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy')
+    grid_search.fit(X_resampled, y_resampled)
+
+    st.write(f"Кращі параметри: {grid_search.best_params_}")
+
+    y_pred = grid_search.predict(X_test)
 
     # Compute and display the confusion matrix and accuracy
     cm = confusion_matrix(y_test, y_pred)
