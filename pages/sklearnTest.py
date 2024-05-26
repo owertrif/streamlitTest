@@ -10,7 +10,7 @@ import nltk
 import pandas as pd
 import numpy as np
 from sklearn.utils import resample
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from joblib import parallel_backend
 
 # Ensure NLTK data is downloaded
@@ -123,10 +123,15 @@ if st.button('Goooo'):
 
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('svc', LogisticRegression(solver='liblinear'))
+        ('rf', RandomForestClassifier(class_weight='balanced'))
     ])
 
-    param_distributions = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
+    param_distributions = {
+        'rf__n_estimators': [100, 200],
+        'rf__max_depth': [10, 20, None],
+        'rf__min_samples_split': [2, 5, 10]
+    }
+
     with parallel_backend('threading', n_jobs=-1):
         random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy', n_jobs=-1)
         random_search.fit(X_resampled, y_resampled)
