@@ -11,6 +11,7 @@ import re
 import nltk
 import pandas as pd
 import numpy as np
+from imblearn.over_sampling import SMOTE
 
 # Ensure NLTK data is downloaded
 def download_nltk_data():
@@ -95,6 +96,17 @@ if st.button('Goooo'):
     X_train, X_test, y_train, y_test = train_test_split(land_data['text'],land_data['built_up'],
                                                               	stratify=land_data['built_up'],
                                                               	test_size=0.33,random_state=0)
+
+    st.write("Розподіл категорій перед балансуванням:")
+    st.write(y_train.value_counts())
+
+    # Балансування даних за допомогою SMOTE
+    smote = SMOTE(random_state=0)
+    X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+    # Перевірка розподілу категорій після балансування
+    st.write("Розподіл категорій після балансування:")
+    st.write(pd.Series(y_resampled).value_counts())
 
     # Create and fit the pipeline
     pipeline = Pipeline([
