@@ -136,16 +136,24 @@ if st.button('Goooo'):
     st.write("Розподіл категорій після балансування:")
     st.write(pd.Series(y_resampled).value_counts())
 
-    # Create and fit the pipeline with class weight adjustment
+    from sklearn.ensemble import GradientBoostingClassifier
+
+    # Create and fit the pipeline with Gradient Boosting
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('svc', LogisticRegression(class_weight={0: 1, 1: 5}))  # Adjust class weight
+        ('gbc', GradientBoostingClassifier())
     ])
 
-    # Використання RandomizedSearchCV для налаштування параметрів
-    param_distributions = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
+    # Using RandomizedSearchCV for hyperparameter tuning
+    param_distributions = {
+        'gbc__n_estimators': [100, 200],
+        'gbc__learning_rate': [0.01, 0.1, 0.2],
+        'gbc__max_depth': [3, 5, 7]
+    }
+
     with parallel_backend('threading', n_jobs=-1):
-        random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy', n_jobs=-1)
+        random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy',
+                                           n_jobs=-1)
         random_search.fit(X_resampled, y_resampled)
 
     st.write(f"Кращі параметри: {random_search.best_params_}")
