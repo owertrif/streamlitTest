@@ -129,7 +129,7 @@ if st.button('Goooo'):
 
 
     # Balance the data further
-    X_resampled, y_resampled = balance_data_further(X_train, y_train)
+    #X_resampled, y_resampled = balance_data_further(X_train, y_train)
 
     # Proceed with model training using Random Forest as an example
     from sklearn.ensemble import RandomForestClassifier
