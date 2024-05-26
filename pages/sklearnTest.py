@@ -156,7 +156,7 @@ if st.button('Goooo'):
     # Compute and display the confusion matrix and accuracy
     cm = confusion_matrix(y_test, y_pred)
     accuracy = accuracy_score(y_test, y_pred)
-    recall = recall_score(y_test,y_pred)
+    recall = recall_score(y_test,y_pred, zero_division=1)
 
     st.write(f"Accuracy: {accuracy:.2f}")
     st.write(f"Recall: {recall:.2f}")
