@@ -159,4 +159,4 @@ if st.button('Goooo'):
 
     st.write(f"Accuracy: {accuracy:.2f}")
     st.write("Confusion Matrix:")
-    st.write(cm)
+    st.table(cm)
