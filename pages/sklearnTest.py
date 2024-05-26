@@ -99,8 +99,8 @@ with st.expander('Show raw data'):
     st.write(land_data)
 
 if st.button('Goooo'):
-    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['land_types'],
-                                                        stratify=land_data['land_types'],
+    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['built_up'],
+                                                        stratify=land_data['built_up'],
                                                         test_size=0.33, random_state=0)
 
     # Перевірка розподілу категорій перед балансуванням
@@ -110,11 +110,11 @@ if st.button('Goooo'):
     # Функція для балансування даних
     def balance_data(X, y):
         # Об'єднання даних в один DataFrame
-        data = pd.DataFrame({'text': X, 'land_types': y})
+        data = pd.DataFrame({'text': X, 'built_up': y})
 
         # Розділення даних на класи
-        class_0 = data[data['land_types'] == 0]
-        class_1 = data[data['land_types'] == 1]
+        class_0 = data[data['built_up'] == 0]
+        class_1 = data[data['built_up'] == 1]
 
         # Зменшення класу 0 до розміру класу 1
         class_0_downsampled = resample(class_0,
@@ -126,7 +126,7 @@ if st.button('Goooo'):
         balanced_data = pd.concat([class_0_downsampled, class_1])
 
         X_balanced = balanced_data['text']
-        y_balanced = balanced_data['land_types']
+        y_balanced = balanced_data['built_up']
 
         return X_balanced, y_balanced
 
