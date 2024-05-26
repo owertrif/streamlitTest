@@ -107,21 +107,18 @@ if st.button('Goooo'):
     st.write(y_train.value_counts())
 
     # Функція для балансування даних
-    def balance_data(X, y):
-        # Об'єднання даних в один DataFrame
+    def balance_data_further(X, y):
+        # Combine data into a DataFrame
         data = pd.DataFrame({'text': X, 'built_up': y})
 
-        # Розділення даних на класи
+        # Separate the data into classes
         class_0 = data[data['built_up'] == 0]
         class_1 = data[data['built_up'] == 1]
 
-        # Зменшення класу 0 до розміру класу 1
-        class_0_downsampled = resample(class_0,
-                                       replace=False,
-                                       n_samples=len(class_1),
-                                       random_state=0)
+        # Further downsample class 0
+        class_0_downsampled = resample(class_0, replace=False, n_samples=len(class_1), random_state=0)
 
-        # Об'єднання зменшених даних
+        # Combine downsampled data
         balanced_data = pd.concat([class_0_downsampled, class_1])
 
         X_balanced = balanced_data['text']
@@ -129,22 +126,18 @@ if st.button('Goooo'):
 
         return X_balanced, y_balanced
 
-    # Балансування даних
-    X_resampled, y_resampled = balance_data(X_train, y_train)
 
-    # Перевірка розподілу категорій після балансування
-    st.write("Розподіл категорій після балансування:")
-    st.write(pd.Series(y_resampled).value_counts())
+    # Balance the data further
+    X_resampled, y_resampled = balance_data_further(X_train, y_train)
 
+    # Proceed with model training using Random Forest as an example
     from sklearn.ensemble import RandomForestClassifier
 
-    # Create and fit the pipeline with Random Forest
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('rf', RandomForestClassifier(class_weight={0: 1, 1: 5}))  # Adjust class weights manually
+        ('rf', RandomForestClassifier(class_weight={0: 1, 1: 10}))  # Increase the weight of class 1
     ])
 
-    # Using RandomizedSearchCV for hyperparameter tuning
     param_distributions = {
         'rf__n_estimators': [100, 200],
         'rf__min_samples_split': [2, 5, 10],
@@ -173,4 +166,3 @@ if st.button('Goooo'):
     st.write(f"F1 Score: {f1:.2f}")
     st.write("Confusion Matrix:")
     st.table(cm)
-
