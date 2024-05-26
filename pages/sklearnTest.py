@@ -10,7 +10,6 @@ import nltk
 import pandas as pd
 import numpy as np
 from sklearn.utils import resample
-from sklearn.linear_model import LogisticRegression
 from joblib import parallel_backend
 
 # Ensure NLTK data is downloaded
@@ -131,23 +130,17 @@ if st.button('Goooo'):
     X_resampled, y_resampled = balance_data_further(X_train, y_train)
 
     # Proceed with model training using Random Forest as an example
-    from imblearn.ensemble import BalancedBaggingClassifier
     from sklearn.ensemble import RandomForestClassifier
 
-    # Create and fit the pipeline with BalancedBaggingClassifier
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('bbc', BalancedBaggingClassifier(base_estimator=RandomForestClassifier(),
-                                          sampling_strategy='auto',
-                                          replacement=False,
-                                          random_state=0))
+        ('rf', RandomForestClassifier(class_weight={0: 1, 1: 10}))  # Increase the weight of class 1
     ])
 
-    # Using RandomizedSearchCV for hyperparameter tuning
     param_distributions = {
-        'bbc__n_estimators': [10, 20, 50],
-        'bbc__base_estimator__n_estimators': [100, 200],
-        'bbc__base_estimator__max_depth': [None, 10, 20]
+        'rf__n_estimators': [100, 200],
+        'rf__min_samples_split': [2, 5, 10],
+        'rf__max_depth': [None, 10, 20]
     }
 
     with parallel_backend('threading', n_jobs=-1):
