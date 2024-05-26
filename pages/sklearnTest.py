@@ -1,5 +1,7 @@
 import random
 import streamlit as st
+import seaborn as sns
+from matplotlib import pyplot as plt
 from sklearn.metrics import accuracy_score, confusion_matrix, recall_score, precision_score, f1_score
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
@@ -165,3 +167,14 @@ if st.button('Goooo'):
     st.write(f"F1 Score: {f1:.2f}")
     st.write("Confusion Matrix:")
     st.table(cm)
+
+    cm_flat = cm.flatten()
+    labels = ['True Negatives', 'False Positives', 'False Negatives', 'True Positives']
+
+    # Побудова кругової діаграми
+    fig, ax = plt.subplots()
+    ax.pie(cm_flat, labels=labels, autopct='%1.1f%%', startangle=90, colors=sns.color_palette("pastel"))
+    ax.axis('equal')  # Зберегти пропорції
+
+    # Відображення кругової діаграми у Streamlit
+    st.pyplot(fig)
