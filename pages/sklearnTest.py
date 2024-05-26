@@ -99,37 +99,9 @@ with st.expander('Show raw data'):
     st.write(land_data)
 
 if st.button('Goooo'):
-    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['built_up'],
-                                                        stratify=land_data['built_up'],
+    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_types,
+                                                        stratify=land_types,
                                                         test_size=0.33, random_state=0)
-
-    # Перевірка розподілу категорій перед балансуванням
-    st.write("Розподіл категорій перед балансуванням:")
-    st.write(y_train.value_counts())
-
-    # Функція для балансування даних
-    def balance_data_further(X, y):
-        # Combine data into a DataFrame
-        data = pd.DataFrame({'text': X, 'built_up': y})
-
-        # Separate the data into classes
-        class_0 = data[data['built_up'] == 0]
-        class_1 = data[data['built_up'] == 1]
-
-        # Further downsample class 0
-        class_0_downsampled = resample(class_0, replace=False, n_samples=len(class_1), random_state=0)
-
-        # Combine downsampled data
-        balanced_data = pd.concat([class_0_downsampled, class_1])
-
-        X_balanced = balanced_data['text']
-        y_balanced = balanced_data['built_up']
-
-        return X_balanced, y_balanced
-
-
-    # Balance the data further
-    #X_resampled, y_resampled = balance_data_further(X_train, y_train)
 
     # Proceed with model training using Random Forest as an example
     from sklearn.ensemble import RandomForestClassifier
@@ -166,15 +138,4 @@ if st.button('Goooo'):
     st.write(f"Precision: {precision:.2f}")
     st.write(f"F1 Score: {f1:.2f}")
     st.write("Confusion Matrix:")
-    st.table(cm)
-
-    cm_flat = cm.flatten()
-    labels = ['True Negatives', 'False Positives', 'False Negatives', 'True Positives']
-
-    # Побудова кругової діаграми
-    fig, ax = plt.subplots()
-    ax.pie(cm_flat, labels=labels, autopct='%1.1f%%', startangle=90, colors=sns.color_palette("pastel"))
-    ax.axis('equal')  # Зберегти пропорції
-
-    # Відображення кругової діаграми у Streamlit
-    st.pyplot(fig)
+    st.write(cm)
