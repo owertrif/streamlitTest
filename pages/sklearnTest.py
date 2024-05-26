@@ -148,7 +148,7 @@ if st.button('Goooo'):
     with parallel_backend('threading', n_jobs=-1):
         random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=10, cv=5, scoring='accuracy',
                                            n_jobs=-1)
-        random_search.fit(X_resampled, y_resampled)
+        random_search.fit(X_train, y_train)
 
     st.write(f"Кращі параметри: {random_search.best_params_}")
 
