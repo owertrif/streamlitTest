@@ -1,5 +1,4 @@
 import random
-
 import streamlit as st
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.pipeline import Pipeline
@@ -12,6 +11,7 @@ import nltk
 import pandas as pd
 import numpy as np
 from sklearn.utils import resample
+from sklearn.ensemble import RandomForestClassifier
 
 # Ensure NLTK data is downloaded
 def download_nltk_data():
@@ -30,7 +30,7 @@ nlp = Ukrainian()
 def ua_tokenizer_lemma(text, lemma=True):
     text = re.sub(r"""['’"`�]""", '', text)
     text = re.sub(r"""([0-9])([\u0400-\u04FF]|[A-z])""", r"\1 \2", text)
-    text = re.sub(r"""([\u0400-\u04FF]|[A-z])([0-9])""", r"\1 \2", text)
+    text = re.sub(r"""([\у0400-\у04FF]|[A-z])([0-9])""", r"\1 \2", text)
     text = re.sub(r"""[\-.,:+*/_]""", ' ', text)
     if lemma:
         return [token.lemma_ for token in nlp(text) if token.is_alpha]
@@ -86,17 +86,21 @@ def Data_Augmentation(number):
 
     return df
 
-
-land_data = pd.concat([land_data,Data_Augmentation(34)], ignore_index=True)
+land_data = pd.concat([land_data, Data_Augmentation(34)], ignore_index=True)
 
 with st.expander('Show raw data'):
     st.write(land_data)
 
 if st.button('Goooo'):
-    X_train, X_test, y_train, y_test = train_test_split(land_data['text'],land_data['built_up'],
-                                                              	stratify=land_data['built_up'],
-                                                              	test_size=0.33,random_state=0)
+    X_train, X_test, y_train, y_test = train_test_split(land_data['text'], land_data['built_up'],
+                                                        stratify=land_data['built_up'],
+                                                        test_size=0.33, random_state=0)
 
+    # Перевірка розподілу категорій перед балансуванням
+    st.write("Розподіл категорій перед балансуванням:")
+    st.write(y_train.value_counts())
+
+    # Функція для балансування даних
     def balance_data(X, y):
         # Об'єднання даних в один DataFrame
         data = pd.DataFrame({'text': X, 'built_up': y})
@@ -129,10 +133,10 @@ if st.button('Goooo'):
     # Create and fit the pipeline
     pipeline = Pipeline([
         ('vectorizer', TfidfVectorizer(tokenizer=ua_tokenizer_lemma)),
-        ('svc', LinearSVC())
+        ('svc', RandomForestClassifier())
     ])
 
-    pipeline.fit(X_train, y_train)
+    pipeline.fit(X_resampled, y_resampled)
     y_pred = pipeline.predict(X_test)
 
     # Compute and display the confusion matrix and accuracy
