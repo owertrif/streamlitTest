@@ -42,8 +42,13 @@ st.markdown("# SklearnNlp Page")
 st.sidebar.markdown("# SklearnNlp Page")
 
 # Load dataset
-land_data = pd.read_csv('land_real_estate.csv').replace(np.nan, "")
-land_data['text'] = land_data['description'] + ' ' + land_data['land_types_source'] + ' ' + land_data['land_types_PcmU']
+@st.cache_data
+def load_data():
+    land_data = pd.read_csv('land_real_estate.csv').replace(np.nan, "")
+    land_data['text'] = land_data['description'] + ' ' + land_data['land_types_source'] + ' ' + land_data['land_types_PcmU']
+    return land_data
+
+land_data = load_data()
 
 @st.cache_data
 def land_types_download():
@@ -56,7 +61,8 @@ def land_types_download():
 
 land_types = land_types_download()
 
-def Data_Augmentation(number):
+@st.cache_data
+def data_augmentation(number):
     unigrams_list = ['продаж', 'земельна', 'ділянка', 'іншої', 'інфраструктура', 'інструменту', 'інвентарю', 'ізумрудє',
                      'івасюка',
                      'яром', 'яворівського', 'шанове', 'чудова', 'цін', 'цільових', 'цілу', 'цілорічно', 'участке',
@@ -87,7 +93,7 @@ def Data_Augmentation(number):
 
     return df
 
-land_data = pd.concat([land_data, Data_Augmentation(34)], ignore_index=True)
+land_data = pd.concat([land_data, data_augmentation(34)], ignore_index=True)
 
 with st.expander('Show raw data'):
     st.write(land_data)
@@ -139,7 +145,7 @@ if st.button('Goooo'):
 
     # Використання GridSearchCV для налаштування параметрів
     param_grid = {'svc__C': [0.1, 1, 10], 'svc__penalty': ['l1', 'l2']}
-    grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy')
+    grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
     grid_search.fit(X_resampled, y_resampled)
 
     st.write(f"Кращі параметри: {grid_search.best_params_}")
